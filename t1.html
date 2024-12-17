@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GREEN-API Интеграция</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      height: 100vh;
+      background-color: #f4f4f4;
+    }
+
+    .left-column {
+      width: 40%;
+      background-color: #ffffff;
+      padding: 20px;
+      border-right: 1px solid #ddd;
+    }
+
+    .right-column {
+      width: 60%;
+      padding: 20px;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #response {
+      width: 100%;
+      height: 300px;
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      background-color: #f9f9f9;
+      font-family: monospace;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-y: auto;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    .container {
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Левая колонка для управления -->
+    <div class="left-column">
+      <h1>GREEN-API</h1>
+      <div class="form-group">
+        <label for="idInstance">idInstance:</label>
+        <input type="text" id="idInstance" placeholder="Введите idInstance">
+      </div>
+
+      <div class="form-group">
+        <label for="ApiTokenInstance">ApiTokenInstance:</label>
+        <input type="text" id="ApiTokenInstance" placeholder="Введите ApiTokenInstance">
+      </div>
+
+      <button id="getSettingsBtn">Получить настройки</button>
+      <button id="getStateInstanceBtn">Получить состояние инстанса</button>
+      
+      <div class="form-group">
+        <label for="message">номер:</label>
+        <input type="text" id="chatId1" placeholder="Введите номер">
+      </div>
+      <div class="form-group">
+        <label for="message">Сообщение для отправки:</label>
+        <input type="text" id="message" placeholder="Введите сообщение для отправки">
+      </div>
+
+      <button id="sendMessageBtn">Отправить сообщение</button>
+      
+      <div class="form-group">
+        <label for="message">номер:</label>
+        <input type="text" id="chatId2" placeholder="Введите номер">
+      </div>
+      
+      <div class="form-group">
+        <label for="fileUrl">URL файла для отправки:</label>
+        <input type="text" id="fileUrl" placeholder="Введите URL файла">
+      </div>
+      
+      <button id="sendFileByUrlBtn">Отправить файл</button>
+    </div>
+    
+
+    <!-- Правая колонка для вывода информации -->
+    <div class="right-column">
+      <h1>Ответ от API</h1>
+      <div id="response" contenteditable="true" readonly></div>
+    </div>
+  </div>
+
+  <script>
+    const getSettingsBtn = document.getElementById('getSettingsBtn');
+    const getStateInstanceBtn = document.getElementById('getStateInstanceBtn');
+    const sendMessageBtn = document.getElementById('sendMessageBtn');
+    const sendFileByUrlBtn = document.getElementById('sendFileByUrlBtn');
+    const idInstanceInput = document.getElementById('idInstance');
+    const apiTokenInput = document.getElementById('ApiTokenInstance');
+    const messageInput = document.getElementById('message');
+    const fileUrlInput = document.getElementById('fileUrl');
+    const responseDiv = document.getElementById('response');
+    const api = 'https://1103.api.green-api.com';
+
+    // Функция для выполнения GET-запроса
+    const getRequest = async (url) => {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`Ошибка: ${res.statusText}`);
+        const data = await res.json();
+        responseDiv.textContent = JSON.stringify(data, null, 2);
+      } catch (error) {
+        responseDiv.textContent = `Ошибка: ${error.message}`;
+      }
+    };
+
+    // Функция для выполнения POST-запроса
+    const postRequest = async (url, body) => {
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) throw new Error(`Ошибка: ${res.statusText}`);
+        const data = await res.json();
+        responseDiv.textContent = JSON.stringify(data, null, 2);
+      } catch (error) {
+        responseDiv.textContent = `Ошибка: ${error.message}`;
+      }
+    };
+
+    // Получение настроек инстанса
+    getSettingsBtn.addEventListener('click', () => {
+      const idInstance = idInstanceInput.value.trim();
+      const apiToken = apiTokenInput.value.trim();
+      if (idInstance && apiToken) {
+        const url = `${api}/waInstance${idInstance}/getSettings/${apiToken}`;
+        getRequest(url);
+      } else {
+        alert('Пожалуйста, заполните все поля.');
+      }
+    });
+
+    // Получение состояния инстанса
+    getStateInstanceBtn.addEventListener('click', () => {
+      const idInstance = idInstanceInput.value.trim();
+      const apiToken = apiTokenInput.value.trim();
+      if (idInstance && apiToken) {
+        const url = `${api}/waInstance${idInstance}/getStateInstance/${apiToken}`;
+        getRequest(url);
+      } else {
+        alert('Пожалуйста, заполните все поля.');
+      }
+    });
+
+    // Отправка сообщения
+    sendMessageBtn.addEventListener('click', () => {
+      const idInstance = idInstanceInput.value.trim();
+      const apiToken = apiTokenInput.value.trim();
+      const message = messageInput.value.trim();
+      if (idInstance && apiToken && message) {
+        const chatId = chatId1.value.trim() +'@c.us';
+        const body = { chatId , message }  ;
+        const url = `${api}/waInstance${idInstance}/sendMessage/${apiToken}`;
+        postRequest(url, body);
+      } else {
+        alert('Пожалуйста, заполните все поля.');
+      }
+    });
+
+    // Отправка файла по URL
+    sendFileByUrlBtn.addEventListener('click', () => {
+      const idInstance = idInstanceInput.value.trim();
+      const apiToken = apiTokenInput.value.trim();
+      const urlFile = fileUrlInput.value.trim();
+      if (idInstance && apiToken && fileUrl) {
+        const chatId = chatId2.value.trim() +'@c.us';
+        const fileName = 'картинка';
+        const body = { urlFile, chatId, fileName };
+        const url = `${api}/waInstance${idInstance}/sendFileByUrl/${apiToken}`;
+        postRequest(url, body);
+      } else {
+        alert('Пожалуйста, заполните все поля.');
+      }
+    });
+  </script>
+
+</body>
+</html>
